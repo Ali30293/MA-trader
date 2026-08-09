@@ -1,276 +1,568 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Location Share</title>
 
-  <title>My Location Tracker</title>
-
-  <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
-    body {
-      font-family: Arial, sans-serif;
-      background: #f2f4f7;
-      min-height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-    }
-
-    .container {
-      width: 90%;
-      max-width: 430px;
-      background: white;
-      padding: 30px;
-      border-radius: 20px;
-      box-shadow: 0 10px 35px rgba(0,0,0,0.12);
-      text-align: center;
-    }
-
-    h1 {
-      margin-bottom: 10px;
-      color: #111827;
-    }
-
-    .subtitle {
-      color: #666;
-      margin-bottom: 25px;
-    }
-
-    input {
-      width: 100%;
-      padding: 14px;
-      margin-bottom: 15px;
-      border: 1px solid #ccc;
-      border-radius: 10px;
-      font-size: 16px;
-      outline: none;
-    }
-
-    input:focus {
-      border-color: #111827;
-    }
-
-    button {
-      width: 100%;
-      padding: 14px;
-      border: none;
-      border-radius: 10px;
-      background: #111827;
-      color: white;
-      font-size: 16px;
-      cursor: pointer;
-    }
-
-    button:hover {
-      opacity: 0.9;
-    }
-
-    #status {
-      margin-top: 20px;
-      font-weight: bold;
-    }
-
-    .location-box {
-      margin-top: 20px;
-      padding: 15px;
-      background: #f7f7f7;
-      border-radius: 12px;
-      text-align: left;
-      line-height: 1.8;
-    }
-
-    #mapLink {
-      display: none;
-      margin-top: 20px;
-      text-decoration: none;
-      font-weight: bold;
-      color: #2563eb;
-    }
-  </style>
+<style>
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:Arial,sans-serif;
+  background:#eef2f7;
+  min-height:100vh;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+}
+.card{
+  width:92%;
+  max-width:480px;
+  background:white;
+  padding:25px;
+  border-radius:18px;
+  box-shadow:0 8px 30px #0002;
+}
+h1{text-align:center;margin-top:0}
+.tabs{display:flex;gap:8px;margin-bottom:20px}
+.tabs button{flex:1}
+input,button{
+  width:100%;
+  padding:13px;
+  margin-top:10px;
+  border-radius:10px;
+  font-size:16px;
+}
+input{border:1px solid #bbb}
+button{
+  border:0;
+  background:#111827;
+  color:white;
+  cursor:pointer;
+}
+button:hover{opacity:.9}
+.box{
+  margin-top:20px;
+  padding:15px;
+  background:#f5f6f8;
+  border-radius:12px;
+}
+.hidden{display:none}
+.status{margin-top:15px;font-weight:bold}
+a{word-break:break-all}
+</style>
 </head>
 
 <body>
 
-  <div class="container">
+<div class="card">
 
-    <h1>📍 Location Tracker</h1>
+<h1>📍 Location Share</h1>
 
-    <p class="subtitle">
-      Share your location with your permission.
-    </p>
-
-    <input
-      type="tel"
-      id="phone"
-      placeholder="Enter phone number"
-    >
-
-    <button onclick="getLocation()">
-      Share My Location
-    </button>
-
-    <div id="status"></div>
-
-    <div class="location-box">
-      <p>
-        <strong>Latitude:</strong>
-        <span id="latitude">---</span>
-      </p>
-
-      <p>
-        <strong>Longitude:</strong>
-        <span id="longitude">---</span>
-      </p>
-
-      <p>
-        <strong>Accuracy:</strong>
-        <span id="accuracy">---</span>
-      </p>
-    </div>
-
-    <a
-      id="mapLink"
-      href="#"
-      target="_blank"
-    >
-      🌍 Open Location in Google Maps
-    </a>
-
-  </div>
+<div class="tabs">
+  <button onclick="showRequest()">Request</button>
+  <button onclick="showShare()">Share</button>
+  <button onclick="showDashboard()">Dashboard</button>
+</div>
 
 
-  <script>
+<!-- REQUEST -->
+<section id="requestSection">
 
-    function getLocation() {
+<h2>Request Location</h2>
 
-      const phone =
-        document.getElementById("phone").value.trim();
+<input
+  id="friendNumber"
+  type="tel"
+  placeholder="Friend's phone number"
+>
 
-      const status =
-        document.getElementById("status");
+<button onclick="createRequest()">
+  Create Location Request
+</button>
 
-      if (!phone) {
-        status.textContent =
-          "Please enter your phone number.";
-        return;
-      }
+<div id="requestResult" class="box hidden">
 
-      if (!navigator.geolocation) {
-        status.textContent =
-          "Location is not supported by this browser.";
-        return;
-      }
+<p>Send this link to your friend:</p>
+
+<a id="shareLink" target="_blank"></a>
+
+<button onclick="copyLink()">
+  Copy Link
+</button>
+
+</div>
+
+</section>
+
+
+<!-- SHARE -->
+<section id="shareSection" class="hidden">
+
+<h2>Share My Location</h2>
+
+<p>
+Only continue if you want to share your current location.
+</p>
+
+<button onclick="shareLocation()">
+  Allow & Share Location
+</button>
+
+<div id="shareStatus" class="status"></div>
+
+<div id="sharedData" class="box hidden">
+
+<p>
+Latitude:
+<strong id="lat"></strong>
+</p>
+
+<p>
+Longitude:
+<strong id="lng"></strong>
+</p>
+
+<p>
+Accuracy:
+<strong id="acc"></strong>
+</p>
+
+</div>
+
+</section>
+
+
+<!-- DASHBOARD -->
+<section id="dashboardSection" class="hidden">
+
+<h2>My Dashboard</h2>
+
+<div class="box">
+
+<p>
+Request ID:
+<strong id="requestId"></strong>
+</p>
+
+<p>
+Status:
+<strong id="dashStatus">Waiting</strong>
+</p>
+
+<p>
+Latitude:
+<strong id="dashLat">---</strong>
+</p>
+
+<p>
+Longitude:
+<strong id="dashLng">---</strong>
+</p>
+
+<p>
+Accuracy:
+<strong id="dashAcc">---</strong>
+</p>
+
+<a
+  id="mapLink"
+  target="_blank"
+  class="hidden"
+>
+Open Location in Google Maps
+</a>
+
+</div>
+
+</section>
+
+</div>
+
+
+<script>
+
+/*
+  DEMO STORAGE
+
+  This version uses browser localStorage.
+  It demonstrates the complete request/share flow.
+
+  For real multi-device use, replace this storage
+  layer with Firebase/Firestore.
+*/
+
+
+function showRequest(){
+
+  document.getElementById("requestSection")
+    .classList.remove("hidden");
+
+  document.getElementById("shareSection")
+    .classList.add("hidden");
+
+  document.getElementById("dashboardSection")
+    .classList.add("hidden");
+}
+
+
+function showShare(){
+
+  document.getElementById("requestSection")
+    .classList.add("hidden");
+
+  document.getElementById("shareSection")
+    .classList.remove("hidden");
+
+  document.getElementById("dashboardSection")
+    .classList.add("hidden");
+
+}
+
+
+function showDashboard(){
+
+  document.getElementById("requestSection")
+    .classList.add("hidden");
+
+  document.getElementById("shareSection")
+    .classList.add("hidden");
+
+  document.getElementById("dashboardSection")
+    .classList.remove("hidden");
+
+  loadDashboard();
+
+}
+
+
+/* CREATE REQUEST */
+
+function createRequest(){
+
+  const number =
+    document.getElementById("friendNumber")
+    .value.trim();
+
+  if(!number){
+
+    alert("Enter a phone number first.");
+    return;
+
+  }
+
+
+  const requestId =
+    "REQ-" +
+    Date.now().toString(36).toUpperCase();
+
+
+  const request = {
+
+    id:requestId,
+
+    number:number,
+
+    status:"waiting",
+
+    latitude:null,
+
+    longitude:null,
+
+    accuracy:null,
+
+    createdAt:new Date().toISOString()
+
+  };
+
+
+  localStorage.setItem(
+    "locationRequest",
+    JSON.stringify(request)
+  );
+
+
+  /*
+    The current page URL is used to create
+    the sharing link.
+  */
+
+  const url =
+    window.location.href.split("?")[0]
+    + "?share="
+    + encodeURIComponent(requestId);
+
+
+  const link =
+    document.getElementById("shareLink");
+
+
+  link.href=url;
+  link.textContent=url;
+
+
+  document.getElementById("requestResult")
+    .classList.remove("hidden");
+
+}
+
+
+function copyLink(){
+
+  const link =
+    document.getElementById("shareLink").href;
+
+  navigator.clipboard.writeText(link);
+
+  alert("Sharing link copied.");
+
+}
+
+
+/* SHARE LOCATION */
+
+function shareLocation(){
+
+  const status =
+    document.getElementById("shareStatus");
+
+
+  const request =
+    JSON.parse(
+      localStorage.getItem("locationRequest")
+    );
+
+
+  if(!request){
+
+    status.textContent =
+      "No location request found.";
+
+    return;
+
+  }
+
+
+  if(!navigator.geolocation){
+
+    status.textContent =
+      "GPS is not supported by this browser.";
+
+    return;
+
+  }
+
+
+  status.textContent =
+    "Requesting location permission...";
+
+
+  navigator.geolocation.getCurrentPosition(
+
+    function(position){
+
+      const latitude =
+        position.coords.latitude;
+
+      const longitude =
+        position.coords.longitude;
+
+      const accuracy =
+        position.coords.accuracy;
+
+
+      request.status="shared";
+
+      request.latitude=latitude;
+
+      request.longitude=longitude;
+
+      request.accuracy=accuracy;
+
+      request.updatedAt =
+        new Date().toISOString();
+
+
+      localStorage.setItem(
+        "locationRequest",
+        JSON.stringify(request)
+      );
+
+
+      document.getElementById("lat")
+        .textContent =
+        latitude.toFixed(6);
+
+
+      document.getElementById("lng")
+        .textContent =
+        longitude.toFixed(6);
+
+
+      document.getElementById("acc")
+        .textContent =
+        Math.round(accuracy)
+        + " meters";
+
+
+      document.getElementById("sharedData")
+        .classList.remove("hidden");
+
 
       status.textContent =
-        "Requesting location permission...";
+        "✅ Location shared successfully.";
 
 
-      navigator.geolocation.getCurrentPosition(
+    },
 
-        function(position) {
+    function(error){
 
-          const latitude =
-            position.coords.latitude;
+      if(error.code===1){
 
-          const longitude =
-            position.coords.longitude;
+        status.textContent =
+          "❌ Location permission denied.";
 
-          const accuracy =
-            position.coords.accuracy;
+      }
 
+      else if(error.code===2){
 
-          document.getElementById("latitude")
-            .textContent =
-            latitude.toFixed(6);
+        status.textContent =
+          "❌ Location unavailable.";
 
+      }
 
-          document.getElementById("longitude")
-            .textContent =
-            longitude.toFixed(6);
+      else if(error.code===3){
 
+        status.textContent =
+          "❌ Location request timed out.";
 
-          document.getElementById("accuracy")
-            .textContent =
-            Math.round(accuracy) + " meters";
+      }
 
+      else{
 
-          const mapUrl =
-            "https://www.google.com/maps?q="
-            + latitude
-            + ","
-            + longitude;
+        status.textContent =
+          "❌ Could not get location.";
 
+      }
 
-          const mapLink =
-            document.getElementById("mapLink");
+    },
 
+    {
 
-          mapLink.href = mapUrl;
+      enableHighAccuracy:true,
 
-          mapLink.style.display = "block";
+      timeout:15000,
 
-
-          status.textContent =
-            "✅ Location received successfully.";
-
-
-          console.log("Phone:", phone);
-          console.log("Latitude:", latitude);
-          console.log("Longitude:", longitude);
-
-        },
-
-
-        function(error) {
-
-          if (error.code === 1) {
-
-            status.textContent =
-              "❌ Location permission was denied.";
-
-          }
-
-          else if (error.code === 2) {
-
-            status.textContent =
-              "❌ Location information unavailable.";
-
-          }
-
-          else if (error.code === 3) {
-
-            status.textContent =
-              "❌ Location request timed out.";
-
-          }
-
-          else {
-
-            status.textContent =
-              "❌ Unable to get location.";
-
-          }
-
-        },
-
-
-        {
-          enableHighAccuracy: true,
-          timeout: 15000,
-          maximumAge: 0
-        }
-
-      );
+      maximumAge:0
 
     }
 
-  </script>
+  );
+
+}
+
+
+/* DASHBOARD */
+
+function loadDashboard(){
+
+  const request =
+    JSON.parse(
+      localStorage.getItem("locationRequest")
+    );
+
+
+  if(!request){
+
+    document.getElementById("requestId")
+      .textContent="No request";
+
+    return;
+
+  }
+
+
+  document.getElementById("requestId")
+    .textContent=request.id;
+
+
+  document.getElementById("dashStatus")
+    .textContent=request.status;
+
+
+  if(request.latitude !== null){
+
+    document.getElementById("dashLat")
+      .textContent =
+      Number(request.latitude).toFixed(6);
+
+
+    document.getElementById("dashLng")
+      .textContent =
+      Number(request.longitude).toFixed(6);
+
+
+    document.getElementById("dashAcc")
+      .textContent =
+      Math.round(request.accuracy)
+      + " meters";
+
+
+    const map =
+      "https://www.google.com/maps?q="
+      + request.latitude
+      + ","
+      + request.longitude;
+
+
+    const mapLink =
+      document.getElementById("mapLink");
+
+
+    mapLink.href=map;
+
+    mapLink.classList.remove("hidden");
+
+  }
+
+}
+
+
+/* AUTOMATIC SHARE PAGE */
+
+function checkShareLink(){
+
+  const params =
+    new URLSearchParams(window.location.search);
+
+
+  const shareId =
+    params.get("share");
+
+
+  if(shareId){
+
+    const request =
+      JSON.parse(
+        localStorage.getItem("locationRequest")
+      );
+
+
+    if(request && request.id===shareId){
+
+      showShare();
+
+    }
+
+  }
+
+}
+
+
+checkShareLink();
+
+</script>
 
 </body>
 </html>
